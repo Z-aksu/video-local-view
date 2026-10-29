@@ -1,0 +1,78 @@
+// The lock screen follows the active theme, including its artwork and typography.
+.screen-blocked .app-frame { visibility: hidden; }
+
+.lock-screen {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--text);
+  border: 0;
+  background: var(--main-background);
+  font-family: var(--font-body);
+}
+.lock-screen[open] { display: grid; grid-template-rows: auto 1fr; }
+.lock-screen::backdrop { background: var(--bg); }
+.lock-screen:focus { outline: none; }
+.desk-header { display: flex; align-items: center; gap: 16px; min-height: 65px; padding: 0 36px; color: var(--muted); border-bottom: 1px solid var(--line); background: var(--panel); font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.desk-brand-mark { display: grid; grid-template-columns: repeat(2, 1fr); width: 18px; height: 18px; gap: 3px; }
+.desk-brand-mark i { background: var(--accent); border-radius: 1px; }
+.desk-brand-mark i:nth-child(2) { opacity: .4; }
+.desk-brand-mark i:nth-child(3) { opacity: .7; }
+.desk-main { align-self: center; width: min(960px, 100%); margin: auto; padding: 48px 32px 28px; }
+.desk-paper { display: grid; grid-template-columns: 1.1fr 1fr; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: 0 18px 60px var(--shadow-soft); }
+.desk-artwork { grid-column: 1 / -1; height: clamp(150px, 24vh, 230px); overflow: hidden; border-bottom: 1px solid var(--line); background: var(--cover-bg); }
+.desk-artwork img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+.desk-clock-card { align-self: center; min-width: 0; padding: 35px 38px 20px; }
+.desk-eyebrow { color: var(--accent-muted); font: 9px var(--mono); letter-spacing: .16em; text-transform: uppercase; }
+.desk-clock { display: block; margin: 10px 0 12px; padding: 0; color: var(--text-strong); border: 0; background: transparent; font-family: var(--font-display); font-size: clamp(64px, 8vw, 108px); font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: -.055em; line-height: 1.1; cursor: pointer; }
+.desk-clock:disabled { cursor: default; }
+.desk-clock:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
+.desk-date { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.desk-date > span { width: 24px; border-top: 2px solid var(--accent); }
+.desk-entry-slot { min-height: 76px; max-width: 270px; padding-top: 17px; }
+.desk-entry-form { display: flex; gap: 8px; }
+.desk-entry-form input { width: 100%; min-width: 0; height: 36px; padding: 0 10px; color: var(--text); border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); font: 16px var(--mono); letter-spacing: .12em; }
+.desk-entry-form input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.desk-entry-form button, .desk-retry { display: grid; flex-shrink: 0; min-width: 36px; min-height: 36px; place-items: center; padding: 8px; color: var(--panel); border: 0; border-radius: 6px; background: var(--accent-strong); cursor: pointer; }
+.desk-entry-form button:disabled { opacity: .45; cursor: default; }
+.desk-entry-form button:focus-visible, .desk-retry:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.desk-entry-form svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.desk-entry-error, .desk-entry-status { margin: 6px 0 0; color: var(--error-text); font-size: 11px; line-height: 1.7; }
+.desk-entry-status { color: var(--muted); }
+.desk-retry { margin-top: 8px; padding: 8px 14px; font-size: 11px; }
+.desk-calendar-card { align-self: center; min-width: 0; margin: 28px 0; padding: 8px 38px; border-left: 1px solid var(--line); }
+.desk-calendar-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.desk-calendar-heading strong { color: var(--text-secondary); font-family: var(--font-display); font-size: 12px; font-weight: 500; }
+.desk-calendar-heading > span { color: var(--accent); font-size: 24px; line-height: 12px; }
+.desk-calendar-week, .desk-calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); justify-items: center; gap: 6px; text-align: center; }
+.desk-calendar-week { margin-bottom: 11px; color: var(--text-faint); font: 9px var(--mono); }
+.desk-calendar-days > span { display: grid; width: 28px; height: 28px; place-items: center; color: var(--text-secondary); font: 11px var(--mono); }
+.desk-calendar-days > .is-today { color: var(--panel); border-radius: 5px; background: var(--accent-strong); }
+.desk-foot { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 26px; }
+.desk-foot > span { width: 26px; border-top: 1px solid var(--line-strong); }
+.desk-foot > i { width: 3px; height: 3px; background: var(--accent-muted); transform: rotate(45deg); }
+
+@media (max-width: 600px) {
+  .desk-header { min-height: 57px; padding: 0 22px; }
+  .desk-main { max-width: 430px; padding: 24px 20px; }
+  .desk-paper { grid-template-columns: 1fr; }
+  .desk-artwork { height: 130px; }
+  .desk-clock-card { padding: 26px 28px 0; }
+  .desk-clock { font-size: clamp(64px, 20vw, 86px); }
+  .desk-calendar-card { margin: 0 28px 25px; padding: 22px 0 0; border-top: 1px solid var(--line); border-left: 0; }
+  .desk-calendar-heading { margin-bottom: 18px; }
+  .desk-calendar-days { row-gap: 3px; }
+  .desk-foot { margin-top: 19px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-blocked .app-frame { transition: none; }
+}

@@ -1,9 +1,11 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import VideoPlayer from './components/VideoPlayer.vue'
 import VideoTreeNode from './components/VideoTreeNode.vue'
 import ThemeSwitcher from './components/ThemeSwitcher.vue'
+import LockScreen from './components/LockScreen.vue'
+import { createBlurLock } from './blur-lock.js'
 import { normalizePlaybackTime } from './playback-progress.js'
 import { applyTheme, readTheme, saveTheme } from './theme.js'
 
@@ -18,6 +20,26 @@ const videoCount = ref(0)
 const selectedVideo = ref(null)
 const privacyCovered = ref(false)
 const playerRef = ref(null)
+const configReady = ref(false)
+const configLoading = ref(false)
+const configError = ref('')
+const screenLocked = ref(false)
+const passwordRequired = ref(false)
+const unlockPending = ref(false)
+const unlockError = ref('')
+const screenBlocked = computed(() => !configReady.value || screenLocked.value)
+let blurLock = null
+
+watch(screenBlocked, (blocked) => {
+  // Hide the page and stop audio synchronously, before Vue renders the dialog.
+  document.documentElement.classList.toggle('screen-blocked', blocked)
+  playerRef.value?.setScreenLocked(blocked)
+  if (blocked) {
+    mobileMenuOpen.value = false
+    desktopMenuOpen.value = false
+    unlockError.value = ''
+  }
+}, { flush: 'sync' })
 const snapshotMessage = ref('')
 const loading = ref(true)
 const refreshing = ref(false)
@@ -34,7 +56,7 @@ let playbackTime = 0
 let snapshotMessageTimer
 
 async function captureSnapshot() {
-  if (privacyCovered.value) return
+  if (privacyCovered.value || screenBlocked.value) return
   snapshotMessage.value = ''
   try {
     const result = await playerRef.value?.captureFrame()
@@ -207,6 +229,7 @@ async function loadTree({ isRefresh = false } = {}) {
 }
 
 function selectVideo(video) {
+  if (screenBlocked.value) return
   if (selectedVideo.value?.path !== video.path) {
     playbackTime = 0
     selectedVideo.value = { name: video.name, path: video.path }
@@ -216,14 +239,72 @@ function selectVideo(video) {
   desktopMenuOpen.value = false
 }
 
+async function loadLockConfig() {
+  if (configLoading.value) return
+  configLoading.value = true
+  configError.value = ''
+  try {
+    const response = await fetch('/api/config', { cache: 'no-store' })
+    if (!response.ok) throw new Error('Unable to load local configuration. Try again.')
+    const config = await response.json()
+    if (typeof config.blurLockScreen !== 'boolean' || typeof config.hasLockPassword !== 'boolean'
+      || typeof config.workspaceId !== 'string' || !config.workspaceId) {
+      throw new Error('Invalid local configuration. Restart the server and try again.')
+    }
+    if (!blurLock) return
+    passwordRequired.value = config.hasLockPassword
+    blurLock.configure({ enabled: config.blurLockScreen, workspaceId: config.workspaceId })
+    configReady.value = true
+    await loadTree()
+  } catch (error) {
+    configError.value = error.message || 'Unable to load local configuration. Try again.'
+  } finally {
+    configLoading.value = false
+  }
+}
+
+async function unlockScreen(password) {
+  if (unlockPending.value || !configReady.value || !blurLock) return
+  const controller = blurLock
+  unlockPending.value = true
+  unlockError.value = ''
+  try {
+    const unlocked = await controller.unlock(async () => {
+      const response = await fetch('/api/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+        cache: 'no-store',
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Unable to continue. Try again.')
+      return result.unlocked === true
+    })
+    if (!unlocked) unlockError.value = 'Click the time to try again.'
+  } catch (error) {
+    unlockError.value = error.message || 'Unable to connect. Try again.'
+  } finally {
+    unlockPending.value = false
+  }
+}
+
 onMounted(() => {
+  document.documentElement.classList.add('screen-blocked')
+  blurLock = createBlurLock({
+    windowObject: window,
+    documentObject: document,
+    onChange: (locked) => { screenLocked.value = locked },
+  })
   mobileViewportQuery.addEventListener('change', updateMobileViewport)
   document.addEventListener('pointerdown', closeMobileMenuOnOutsidePointer)
   document.addEventListener('keydown', closeMobileMenuOnEscape)
-  loadTree()
+  loadLockConfig()
 })
 
 onBeforeUnmount(() => {
+  blurLock?.dispose()
+  blurLock = null
+  document.documentElement.classList.remove('screen-blocked')
   window.clearTimeout(snapshotMessageTimer)
   mobileViewportQuery.removeEventListener('change', updateMobileViewport)
   document.removeEventListener('pointerdown', closeMobileMenuOnOutsidePointer)
@@ -232,7 +313,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="app-frame" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'mobile-menu-open': mobileMenuOpen, 'desktop-menu-open': desktopMenuOpen }">
+  <div class="app-frame" :inert="screenBlocked || undefined" :aria-hidden="screenBlocked || undefined" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'mobile-menu-open': mobileMenuOpen, 'desktop-menu-open': desktopMenuOpen }">
     <aside ref="sidebarElement" class="sidebar" aria-label="Video library sidebar">
       <header class="brand-row">
         <div class="brand-symbol" aria-hidden="true">
@@ -380,6 +461,7 @@ onBeforeUnmount(() => {
           :video="selectedVideo"
           :initial-time="selectedVideo.initialTime"
           :theme="activeTheme"
+          :locked="screenBlocked"
           @progress="savePlaybackProgress"
         />
       </section>
@@ -407,4 +489,16 @@ onBeforeUnmount(() => {
       </section>
     </main>
   </div>
+  <LockScreen
+    v-if="screenBlocked"
+    :theme="activeTheme"
+    :ready="configReady"
+    :loading="configLoading"
+    :config-error="configError"
+    :error="unlockError"
+    :busy="unlockPending"
+    :password-required="passwordRequired"
+    @unlock="unlockScreen"
+    @retry="loadLockConfig"
+  />
 </template>

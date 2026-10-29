@@ -106,6 +106,7 @@ export async function main(args = process.argv.slice(2)) {
 
   console.log('Video Local View is running')
   console.log(`Folder: ${rootDir}`)
+  console.log(`Config: ${path.join(rootDir, '.video', 'config.json')}`)
   console.log(`Open: ${url}`)
   if (options.host === '0.0.0.0' || options.host === '::') {
     for (const host of lanHosts()) console.log(`LAN access: http://${host}:${port}`)

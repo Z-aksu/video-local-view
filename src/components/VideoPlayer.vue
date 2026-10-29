@@ -8,6 +8,7 @@ import { trackPlaybackProgress } from '../playback-progress.js'
 const props = defineProps({
   video: { type: Object, required: true },
   covered: { type: Boolean, default: false },
+  locked: { type: Boolean, default: false },
   initialTime: { type: Number, default: 0 },
   theme: { type: String, default: 'forest' },
 })
@@ -17,6 +18,8 @@ const playerElement = ref(null)
 const playerRoot = shallowRef(null)
 const errorMessage = ref('')
 const source = computed(() => `/api/video?path=${encodeURIComponent(props.video.path)}`)
+const screenLocked = ref(props.locked)
+const obscured = computed(() => props.covered || screenLocked.value)
 
 let player
 let playbackProgress
@@ -40,6 +43,7 @@ function createScreenshotFilename(date = new Date()) {
 }
 
 async function captureFrame() {
+  if (obscured.value) throw new Error('Uncover the video before taking a screenshot.')
   const video = player?.video
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error('The video frame is not ready yet. Play the video and try again.')
@@ -77,25 +81,30 @@ async function captureFrame() {
   }
 }
 
-defineExpose({ captureFrame })
+function setScreenLocked(locked) {
+  screenLocked.value = locked
+}
+
+defineExpose({ captureFrame, setScreenLocked })
+watch(() => props.locked, setScreenLocked, { flush: 'sync' })
 
 function updatePrivacyScreen() {
   if (!player) return
 
-  playerRoot.value.classList.toggle('is-covered', props.covered)
+  playerRoot.value.classList.toggle('is-covered', obscured.value)
 
-  if (props.covered) {
+  if (obscured.value) {
     focusBeforeCover = document.activeElement
     wasPlayingBeforeCover = !player.video.paused && !player.video.ended
     if (wasPlayingBeforeCover) player.pause()
     nextTick(() => {
-      if (props.covered) playerRoot.value?.querySelector('.privacy-screen')?.focus({ preventScroll: true })
+      if (props.covered && !screenLocked.value) playerRoot.value?.querySelector('.privacy-screen')?.focus({ preventScroll: true })
     })
   } else {
     const shouldResumePlayback = wasPlayingBeforeCover
     wasPlayingBeforeCover = false
     nextTick(() => {
-      if (!props.covered && focusBeforeCover?.isConnected) focusBeforeCover.focus({ preventScroll: true })
+      if (!obscured.value && focusBeforeCover?.isConnected) focusBeforeCover.focus({ preventScroll: true })
     })
     if (shouldResumePlayback) {
       player.play().catch(() => {
@@ -105,7 +114,7 @@ function updatePrivacyScreen() {
   }
 }
 
-watch(() => props.covered, updatePrivacyScreen, { flush: 'sync' })
+watch(obscured, updatePrivacyScreen, { flush: 'sync' })
 
 function createPlayer() {
   // Keep controls visible briefly after pointer activity, then let ArtPlayer hide them.
@@ -165,6 +174,10 @@ function createPlayer() {
   player.on('video:error', () => {
     errorMessage.value = 'Unable to play this file. Check that it is intact or try a browser-compatible MP4 or WebM video.'
   })
+  // Media keys and delayed play promises must not restart audio behind the cover.
+  player.on('video:play', () => {
+    if (obscured.value) player.pause()
+  })
 
   // Only our tab-scoped session state is persisted, not ArtPlayer settings.
   player.storage.get = () => undefined
@@ -178,7 +191,7 @@ function createPlayer() {
     onProgress: (currentTime) => emit('progress', { path: videoPath, currentTime }),
   })
   playerRoot.value = player.template.$player
-  if (props.covered) updatePrivacyScreen()
+  if (obscured.value) updatePrivacyScreen()
 }
 
 onMounted(createPlayer)
@@ -192,12 +205,12 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="player-shell" aria-label="Video player">
-    <div class="player-stage" :class="{ 'is-covered': covered }">
+    <div class="player-stage" :class="{ 'is-covered': obscured }">
       <div ref="playerElement" class="art-player-mount"></div>
-      <div v-if="errorMessage && !covered" class="player-error" role="status">{{ errorMessage }}</div>
+      <div v-if="errorMessage && !obscured" class="player-error" role="status">{{ errorMessage }}</div>
       <Teleport v-if="playerRoot" :to="playerRoot">
         <button
-          v-show="!covered"
+          v-show="!obscured"
           class="privacy-fullscreen-toggle privacy-toggle"
           type="button"
           aria-label="Cover video"
@@ -210,7 +223,7 @@ onBeforeUnmount(() => {
             <path d="m3.2 3.2 13.6 13.6" />
           </svg>
         </button>
-        <PrivacyScreen v-show="covered" :theme="theme" @restore="emit('update:covered', false)" />
+        <PrivacyScreen v-show="covered && !screenLocked" :theme="theme" @restore="emit('update:covered', false)" />
       </Teleport>
     </div>
     <div class="player-caption" lang="en">

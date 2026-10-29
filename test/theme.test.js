@@ -63,7 +63,8 @@ test('every theme supplies valid local SVG banners and all consumed CSS tokens',
   const source = await readFile(stylesUrl, 'utf8')
   const switcherSource = await readFile(new URL('../src/styles/components/theme-switcher.less', import.meta.url), 'utf8')
   const playerSource = await readFile(new URL('../src/components/VideoPlayer.vue', import.meta.url), 'utf8')
-  const usedTokens = new Set([...`${source}\n${switcherSource}\n${playerSource}`.matchAll(/var\((--[a-z-]+)\)/g)].map((match) => match[1]))
+  const lockStyle = await readFile(new URL('../src/styles/components/lock-screen.less', import.meta.url), 'utf8')
+  const usedTokens = new Set([...`${source}\n${switcherSource}\n${playerSource}\n${lockStyle}`.matchAll(/var\((--[a-z-]+)\)/g)].map((match) => match[1]))
   usedTokens.delete('--slide-count') // The carousel provides its dynamic count inline.
   for (const token of ['--preview-paper', '--preview-surface', '--preview-accent']) usedTokens.delete(token)
 
@@ -84,7 +85,7 @@ test('every theme supplies valid local SVG banners and all consumed CSS tokens',
       assert.doesNotMatch(svg, /<script|<image|https?:\/\/(?!www\.w3\.org)/i)
     }
   }
-  assert.doesNotMatch(source + switcherSource, /#[\da-f]{3,8}\b|rgba?\(/i, 'Keep palette colors in theme files')
+  assert.doesNotMatch(source + switcherSource + lockStyle, /#[\da-f]{3,8}\b|rgba?\(/i, 'Keep palette colors in theme files')
 })
 
 test('all visible interface prompts are English and the theme menu renders above the player', async () => {
@@ -93,6 +94,7 @@ test('all visible interface prompts are English and the theme menu renders above
   const app = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8')
   const player = await readFile(new URL('../src/components/VideoPlayer.vue', import.meta.url), 'utf8')
   const carousel = await readFile(new URL('../src/components/PrivacyScreen.vue', import.meta.url), 'utf8')
+  const lockScreen = await readFile(new URL('../src/components/LockScreen.vue', import.meta.url), 'utf8')
   const tree = await readFile(new URL('../src/components/VideoTreeNode.vue', import.meta.url), 'utf8')
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8')
   const cli = await readFile(new URL('../bin/video-view.js', import.meta.url), 'utf8')
@@ -102,7 +104,7 @@ test('all visible interface prompts are English and the theme menu renders above
   const serverListener = await readFile(new URL('../server/listen.js', import.meta.url), 'utf8')
 
   for (const theme of themes) assert.match(theme.label, /^[A-Za-z ]+$/)
-  for (const source of [component, app, player, carousel, tree, html, cli, serverApp, serverFiles, serverOptions, serverListener]) {
+  for (const source of [component, app, player, carousel, lockScreen, tree, html, cli, serverApp, serverFiles, serverOptions, serverListener]) {
     assert.doesNotMatch(source, /\p{Script=Han}/u, 'Keep interface copy and accessibility labels in English')
   }
   assert.match(component, /<Teleport to="body">/)

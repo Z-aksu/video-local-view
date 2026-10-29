@@ -1,8 +1,9 @@
 import express from 'express'
-import { randomUUID } from 'node:crypto'
+import { createHash, randomUUID, timingSafeEqual } from 'node:crypto'
 import path from 'node:path'
 
 import { buildVideoTree, countVideoFiles, resolveVideoPath } from './files.js'
+import { hasLockPassword, initializeWorkspaceConfig } from './config.js'
 
 function asyncRoute(handler) {
   return (request, response, next) => {
@@ -14,6 +15,8 @@ export function createVideoApp({ rootDir, staticDir }) {
   const app = express()
   const absoluteRoot = path.resolve(rootDir)
   const sessionId = randomUUID()
+  const config = initializeWorkspaceConfig(absoluteRoot)
+  const workspaceId = createHash('sha256').update(absoluteRoot).digest('hex')
 
   app.disable('x-powered-by')
   app.use((_request, response, next) => {
@@ -33,6 +36,31 @@ export function createVideoApp({ rootDir, staticDir }) {
       "form-action 'none'",
     ].join('; '))
     next()
+  })
+
+  app.get('/api/config', (_request, response) => {
+    response.setHeader('Cache-Control', 'no-store')
+    response.json({ workspaceId, blurLockScreen: config.blurLockScreen, hasLockPassword: hasLockPassword(config) })
+  })
+
+  app.post('/api/unlock', express.json({ limit: '1kb' }), (request, response) => {
+    response.setHeader('Cache-Control', 'no-store')
+    if (!config.blurLockScreen || !hasLockPassword(config)) {
+      response.json({ unlocked: true })
+      return
+    }
+    const password = request.body?.password
+    if (typeof password !== 'string' || password.length === 0) {
+      response.status(400).json({ error: 'Enter your password.' })
+      return
+    }
+    const expected = createHash('sha256').update(String(config.lockPassword)).digest()
+    const received = createHash('sha256').update(password).digest()
+    if (!timingSafeEqual(expected, received)) {
+      response.status(401).json({ error: 'Incorrect password. Try again.' })
+      return
+    }
+    response.json({ unlocked: true })
   })
 
   app.get('/api/tree', asyncRoute(async (_request, response) => {
