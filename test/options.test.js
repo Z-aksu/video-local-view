@@ -6,7 +6,7 @@ import { parseCliOptions } from '../server/options.js'
 test('CLI defaults to the current directory and a loopback listener', () => {
   assert.deepEqual(parseCliOptions([]), {
     directory: '.',
-    port: 3210,
+    port: 31221,
     portSpecified: false,
     host: '127.0.0.1',
     open: true,

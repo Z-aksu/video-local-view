@@ -26,7 +26,7 @@ Usage:
 
 Options:
   -d, --dir <directory>  Video folder (default: current directory)
-  -p, --port <port>      Port to listen on (default: first available port from 3210)
+  -p, --port <port>      Port to listen on (default: first available port from 31221)
       --host <address>   Address to listen on (default: 127.0.0.1, local access only)
       --lan              Allow access from other devices on the local network
       --no-open          Do not open a browser on startup

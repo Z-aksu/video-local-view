@@ -112,11 +112,11 @@ npm pack --dry-run
 开发 Vue 页面时，在两个终端分别启动本地 API 和 Vite：
 
 ```powershell
-# 终端一：3210 端口提供 Express API
-npm start -- --dir "D:\视频资料" --no-open --port 3210
+# 终端一：31221 端口提供 Express API
+npm start -- --dir "D:\视频资料" --no-open --port 31221
 
 # 终端二：启动 Vue 开发页面
 npm run dev
 ```
 
-Vite 会把 `/api` 请求代理到 `127.0.0.1:3210`。正式运行时，`video-view` 会提供构建后的页面和本地 API。
+Vite 会把 `/api` 请求代理到 `127.0.0.1:31221`。正式运行时，`video-view` 会提供构建后的页面和本地 API。
