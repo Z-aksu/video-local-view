@@ -28,7 +28,12 @@ const passwordRequired = ref(false)
 const unlockPending = ref(false)
 const unlockError = ref('')
 const screenBlocked = computed(() => !configReady.value || screenLocked.value)
+const DEFAULT_DOCUMENT_TITLE = 'Video Local View'
 let blurLock = null
+
+watch(screenBlocked, (blocked) => {
+  document.title = blocked ? '—' : DEFAULT_DOCUMENT_TITLE
+}, { immediate: true, flush: 'sync' })
 
 watch(screenBlocked, (blocked) => {
   // Hide the page and stop audio synchronously, before Vue renders the dialog.
@@ -305,6 +310,7 @@ onBeforeUnmount(() => {
   blurLock?.dispose()
   blurLock = null
   document.documentElement.classList.remove('screen-blocked')
+  document.title = DEFAULT_DOCUMENT_TITLE
   window.clearTimeout(snapshotMessageTimer)
   mobileViewportQuery.removeEventListener('change', updateMobileViewport)
   document.removeEventListener('pointerdown', closeMobileMenuOnOutsidePointer)
