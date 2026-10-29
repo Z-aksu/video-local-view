@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="far" x2="0" y2="1"><stop stop-color="#a6a79d" stop-opacity=".52"/><stop offset="1" stop-color="#f4f3ef" stop-opacity="0"/></linearGradient>
+    <linearGradient id="near" x2="0" y2="1"><stop stop-color="#42463e" stop-opacity=".82"/><stop offset=".7" stop-color="#96988c" stop-opacity=".35"/><stop offset="1" stop-color="#f4f3ef" stop-opacity="0"/></linearGradient>
+    <linearGradient id="wash" x2="0" y2="1"><stop stop-color="#74786b" stop-opacity=".25"/><stop offset="1" stop-color="#f4f3ef" stop-opacity="0"/></linearGradient>
+    <filter id="brush" x="-5%" y="-8%" width="110%" height="116%"><feTurbulence type="fractalNoise" baseFrequency=".022" numOctaves="3" seed="12" result="grain"/><feDisplacementMap in="SourceGraphic" in2="grain" scale="5"/></filter>
+    <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".045"/></feComponentTransfer><feBlend in="SourceGraphic" mode="multiply"/></filter>
+  </defs>
+  <path fill="#f4f3ef" d="M0 0h1200v675H0z" filter="url(#paper)"/>
+  <circle cx="777" cy="153" r="43" stroke="#b0b0a6" stroke-width=".7" opacity=".55"/>
+  <g filter="url(#brush)">
+    <path d="m67 402 46-29 35 8 43-52 26-6 26-52 26 17 38-72 31 14 27-40 29 48 24-10 27 51 24 5 30 45 31-12 44 42 38-18 37 38 38 4 48 38v130H67Z" fill="url(#far)"/>
+    <path d="m468 409 58-35 27 8 35-49 27 18 30-67 29 18 45-82 25 16 34-54 22 42 26-16 35 63 22 7 32 66 27-10 48 49 25-11 41 40 49 10 38 27v128H468Z" fill="url(#wash)"/>
+    <path d="m662 464 41-29 22-62 21 11 29-44 22 17 21-79 21 12 29-72 18 21 20-17 29 68 19-7 26 67 23-17 32 57 26-5 30 52 46 6 47 36 32-4v139H662Z" fill="url(#near)"/>
+    <path d="m790 352 26-42-9 48 14 31-23-5-17 45-18 6 18-48Z" fill="#30352e" opacity=".26"/>
+    <path d="m859 255 13 43-17 42 14 47-25 33 12-59-8-30Z" fill="#242a24" opacity=".34"/>
+    <path d="m925 337 29 66-6 43 21 24-35-22 5-43-24-48Z" fill="#363b32" opacity=".25"/>
+    <path d="M0 490c98-38 150-26 212-16 65 10 111-20 173-3 30 8 60 29 96 31l-4 53H0Z" fill="url(#wash)"/>
+  </g>
+  <g stroke="#73776c" stroke-linecap="round" opacity=".3"><path d="M181 526c103-5 166-4 229 0m211-19c55-2 94-2 132 1m-498 58c58-3 97-2 138 0m373-14c80-5 132-3 192 0"/><path d="M562 535h59m-77 7h89" stroke-width=".7"/></g>
+  <g fill="#363b32" stroke="#363b32" stroke-linecap="round" stroke-linejoin="round"><path d="M539 519c26 4 53 5 79 0l-14 9h-50Z" stroke-width="1.2"/><path d="M578 518v-18m0 3 6 8m-6-6-6 9m12-3 29 17" fill="none" stroke-width="1.5"/><circle cx="578" cy="496" r="2.7"/></g>
+  <path d="m456 193 8-4 8 4m13-16 7-3 7 3" stroke="#6b6f64" stroke-width="1.5" stroke-linecap="round"/>
+  <g fill="#55594e" font-family="'Palatino Linotype','Book Antiqua',serif"><text x="170" y="180" font-size="19" letter-spacing="3">MISTY MOUNTAINS</text><text x="171" y="202" font-size="10" letter-spacing="1.5" opacity=".68">STILLNESS BETWEEN RIDGES</text></g>
+  <rect x="157" y="333" width="24" height="28" rx="1" fill="#55594e" opacity=".78"/><text x="169" y="352" text-anchor="middle" fill="#f4f3ef" font-size="16" font-family="'Palatino Linotype','Book Antiqua',serif">I</text>
+</svg>

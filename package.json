@@ -1,0 +1,37 @@
+{
+  "name": "video-local-view",
+  "version": "1.0.0",
+  "description": "Browse and play local videos from the command line.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "video-view": "./bin/video-view.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin/",
+    "server/",
+    "dist/",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test",
+    "start": "node ./bin/video-view.js",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "artplayer": "^5.4.0",
+    "express": "^5.1.0",
+    "open": "^10.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "less": "^4.9.1",
+    "vite": "^6.1.0",
+    "vue": "^3.5.13"
+  }
+}

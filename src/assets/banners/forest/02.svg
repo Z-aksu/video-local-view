@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506">
+        <defs>
+          <linearGradient id="bamboo-mist" x1="0" y1="0" x2="0" y2="1">
+            <stop stop-color="#c5d2c3" stop-opacity=".65" />
+            <stop offset="1" stop-color="#edf1e8" stop-opacity=".2" />
+          </linearGradient>
+          <linearGradient id="bamboo-ridge" x1="0" y1="0" x2="0" y2="1">
+            <stop stop-color="#78917f" stop-opacity=".5" />
+            <stop offset="1" stop-color="#c3d0c1" stop-opacity=".1" />
+          </linearGradient>
+        </defs>
+        <rect width="900" height="506" fill="#f2f5ee" />
+        <circle cx="284" cy="135" r="42" fill="#d7c9a6" opacity=".36" />
+        <path d="M0 329c104-21 134-74 221-53 72 17 99-93 173-104 59-9 96 95 153 79 62-18 92-91 154-76 65 16 95 70 199 65v266H0Z" fill="url(#bamboo-mist)" />
+        <path d="M0 371c107-41 158-15 241-34 89-20 107-81 184-80 60 1 79 52 145 43 81-12 100-69 175-45 69 22 94 79 155 96v155H0Z" fill="url(#bamboo-ridge)" />
+        <path d="M0 417c112-24 186-14 272-33 111-25 167 10 265-7 105-19 196-1 363 16v113H0Z" fill="#b7c8b5" opacity=".25" />
+        <g fill="none" stroke="#687f6d" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M674 344V83m36 264V117m-75 226V155" stroke-width="5" opacity=".68" />
+          <path d="M674 122c-37-18-54-39-64-68m63 97c30-29 50-54 57-84m-57 134c-34-22-52-43-65-66m102 8c23-14 39-29 52-50m-90 97c27-9 47-24 65-45" stroke-width="2.4" opacity=".64" />
+          <path d="M668 87c-13-11-23-14-34-15m-10 19 21-8m51 20 18-21m-13 40 29-10m-84 52-31-18m60 28 28-19" stroke-width="1.5" opacity=".55" />
+          <path d="M118 404c47-7 80-5 119 2m250 14c63-8 105-6 147 0" opacity=".32" />
+        </g>
+        <path d="M0 382c114-2 160-18 225-13 45 4 78 21 127 13 61-9 96-45 151-32 45 10 67 42 120 43 68 1 112-28 177-15 43 9 68 22 100 30v98H0Z" fill="#e1e9dd" opacity=".55" />
+      </svg>

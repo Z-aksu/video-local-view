@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" fill="none">
+  <defs>
+    <linearGradient id="ridge" x2="0" y2="1"><stop stop-color="#646a5d" stop-opacity=".5"/><stop offset="1" stop-color="#f4f3ef" stop-opacity="0"/></linearGradient>
+    <linearGradient id="distant" x2="0" y2="1"><stop stop-color="#9a9f92" stop-opacity=".37"/><stop offset="1" stop-color="#f4f3ef" stop-opacity="0"/></linearGradient>
+    <radialGradient id="moon"><stop stop-color="#fffefa" stop-opacity=".9"/><stop offset=".87" stop-color="#eeede6" stop-opacity=".3"/><stop offset="1" stop-color="#bcbeb1" stop-opacity=".25"/></radialGradient>
+    <filter id="brush"><feTurbulence type="fractalNoise" baseFrequency=".025" numOctaves="3" seed="23" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="4"/></filter>
+    <filter id="paper"><feTurbulence type="fractalNoise" baseFrequency=".68" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".045"/></feComponentTransfer><feBlend in="SourceGraphic" mode="multiply"/></filter>
+  </defs>
+  <path fill="#f4f3ef" d="M0 0h1200v675H0z" filter="url(#paper)"/>
+  <circle cx="767" cy="192" r="59" fill="url(#moon)" stroke="#b9bcb0" stroke-width=".6"/>
+  <g filter="url(#brush)">
+    <path d="m77 430 67-39 28 7 58-63 37 14 53-78 28 19 45-62 33 66 28-9 37 65 32-10 61 54 44-20 49 37 50-9 56 54v92H77Z" fill="url(#distant)"/>
+    <path d="m462 469 54-35 33-58 27 9 46-92 24 20 43-76 31 44 27-10 37 64 28-12 48 66 29-8 42 49 36-13 70 52 62-5 61 28v93H462Z" fill="url(#ridge)"/>
+    <path d="m647 319 13 27-12 40 11 17-22 37 11-46-10-25Zm68-31 13 40 19 18-11 42 12 19-25 47 12-58-16-24 12-27Z" fill="#505947" opacity=".22"/>
+    <path d="M0 522c50-42 75-74 132-67 51 5 66 50 118 54 52 5 101-14 154 4l83 64H0Z" fill="#6b7362" opacity=".22"/>
+  </g>
+  <g stroke="#343f2e" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M190 487c-2-46-7-76-23-109m17 68c20-26 31-53 33-82m-42 43c-26-9-48-25-62-46m94 43c23-4 40-13 54-30" stroke-width="3.8" opacity=".75"/>
+    <path d="m165 380-26-13m26 12 18-17m-8 45-34-9m72-17-10-25m5 46 28-7m-51 44-32-8" stroke-width="2" opacity=".65"/>
+  </g>
+  <g fill="#3c4835" opacity=".73" filter="url(#brush)">
+    <path d="m107 356 11-11 7 8 9-10 9 12 12-4 12 14-12 10-16-4-12 4-13-10-13 1Zm51 2 12-14 11 6 10-8 9 8-4 14-17 5-13-5Z"/>
+    <path d="m126 392 12-12 9 6 14-7 14 13-8 11-18 3-12-8-14 2Zm64-43 13-10 13 6 10-7 12 13-8 13-13-2-12 5-17-8Z"/>
+    <path d="m223 383 11-12 12 4 11-9 13 10 9 1-5 15-17 5-13-4-15 4Z"/>
+  </g>
+  <path d="M142 496c26-7 49-4 78-1m184 41c61-3 104-2 153 0m177-11c69-3 113-2 162 0m-377 38c110-5 179-4 263 0" stroke="#7c8373" stroke-linecap="round" opacity=".27"/>
+  <path d="m504 210 9-5 9 5m16-18 8-4 8 4m30-27 7-4 7 4" stroke="#666e5d" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>
+  <g fill="#55594e" font-family="'Palatino Linotype','Book Antiqua',serif"><text x="1014" y="149" font-size="19" letter-spacing="3">MOON OVER PINES</text><text x="1015" y="171" font-size="10" letter-spacing="1.5" opacity=".68">BENEATH A SILENT SKY</text></g>
+  <rect x="1001" y="303" width="24" height="28" rx="1" fill="#55594e" opacity=".78"/><text x="1013" y="322" text-anchor="middle" fill="#f4f3ef" font-size="16" font-family="'Palatino Linotype','Book Antiqua',serif">III</text>
+</svg>

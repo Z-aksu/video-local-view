@@ -1,0 +1,24 @@
+@import (reference) './palette.less';
+
+// Fresh green mountains. This is the default theme.
+:root,
+:root[data-theme='forest'] {
+  .theme-palette(
+    @paper: #f4f7f3;
+    @panel: #fbfcfa;
+    @surface: #f0f5ef;
+    @ink: #314238;
+    @muted: #829087;
+    @accent: #6b9478;
+    @deep: #4f765d;
+    @soft: #e9f1e8;
+    @border: #e3eae2;
+    @error: #ab655a;
+  );
+  --player-accent: #91b78d;
+  --cover-bg: #f2f5ee;
+}
+
+.theme-option[data-theme-option='forest'] {
+  .theme-preview(#fbfcfa; #dfeadc; #6b9478);
+}

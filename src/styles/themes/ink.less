@@ -1,0 +1,29 @@
+@import (reference) './palette.less';
+
+// Warm rice paper, graphite borders, and monochrome ink.
+:root[data-theme='ink'] {
+  .theme-palette(
+    @paper: #f4f3ef;
+    @panel: #faf9f6;
+    @surface: #eeede8;
+    @ink: #353631;
+    @muted: #85847d;
+    @accent: #65665f;
+    @deep: #292b27;
+    @soft: #e6e5df;
+    @border: #deddd6;
+    @error: #865f57;
+  );
+  --main-background: radial-gradient(ellipse at 82% 88%, fade(#6e7066, 5%) 0%, transparent 48%), radial-gradient(ellipse at 25% 10%, #faf9f6 0%, transparent 60%), #f4f3ef;
+  --raised-background: linear-gradient(145deg, #faf9f6, #eae9e3);
+  --player-bg: #11120f;
+  --player-accent: #c4c3b9;
+  --player-controls: linear-gradient(to top, fade(#161815, 96%) 0%, fade(#353631, 75%) 42%, fade(#65665f, 28%) 76%, transparent 100%);
+  --cover-bg: #f4f3ef;
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
+  --display-tracking: .08em;
+}
+
+.theme-option[data-theme-option='ink'] {
+  .theme-preview(#f4f3ef; #d4d3cb; #292b27);
+}

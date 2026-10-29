@@ -1,0 +1,59 @@
+// Shared semantic tokens. Components consume var(--token), never palette colors.
+.theme-palette(@paper, @panel, @surface, @ink, @muted, @accent, @deep, @soft, @border, @error) {
+  --bg: @paper;
+  --panel: @panel;
+  --panel-soft: @surface;
+  --line: @border;
+  --line-strong: mix(@border, @accent, 76%);
+  --line-soft: mix(@border, @paper, 55%);
+  --text: @ink;
+  --text-strong: darken(@ink, 3%);
+  --text-secondary: mix(@ink, @muted, 60%);
+  --muted: @muted;
+  --text-faint: mix(@muted, @paper, 70%);
+  --accent: @accent;
+  --accent-strong: @deep;
+  --accent-soft: @soft;
+  --accent-muted: mix(@accent, @muted, 65%);
+  --accent-border: mix(@border, @accent, 82%);
+  --hover-bg: mix(@soft, @panel, 60%);
+  --selected-bg: @soft;
+  --selected-text: @deep;
+  --button-bg: @panel;
+  --icon-fill: mix(@soft, @border, 65%);
+  --scrollbar: mix(@border, @accent, 72%);
+  --scrollbar-hover: mix(@border, @accent, 40%);
+  --main-background: radial-gradient(ellipse at 56% 48%, @surface 0%, transparent 58%), mix(@paper, @panel, 55%);
+  --topbar-bg: fade(@panel, 88%);
+  --raised-background: linear-gradient(145deg, @panel, @surface);
+  --shadow-soft: fade(@ink, 6%);
+  --shadow-medium: fade(@ink, 10%);
+  --shadow-panel: fade(@ink, 16%);
+  --shadow-overlay: fade(@ink, 18%);
+  --shadow-inset: fade(@panel, 95%);
+  --orbit-line: fade(@accent, 10%);
+  --welcome-shadow: fade(@accent, 8%);
+  --player-bg: #080b09;
+  --player-accent: mix(@accent, @paper, 75%);
+  --player-progress: fade(#fff, 35%);
+  --player-controls: linear-gradient(to top, fade(@ink, 94%) 0%, fade(@deep, 74%) 42%, fade(@accent, 32%) 76%, transparent 100%);
+  --cover-bg: @surface;
+  --cover-control: fade(@deep, 75%);
+  --cover-control-bg: fade(@panel, 70%);
+  --cover-control-border: fade(@panel, 65%);
+  --cover-control-hover: fade(@panel, 95%);
+  --cover-dot: fade(@accent, 35%);
+  --error-text: @error;
+  --error-border: mix(@error, @paper, 20%);
+  --error-bg: fade(mix(@paper, @error, 97%), 96%);
+  --font-body: 'Aptos', 'Segoe UI Variable', 'Microsoft YaHei UI', sans-serif;
+  --font-display: var(--font-body);
+  --display-tracking: -.045em;
+  --mono: 'Cascadia Code', 'Consolas', monospace;
+}
+
+.theme-preview(@paper, @surface, @accent) {
+  --preview-paper: @paper;
+  --preview-surface: @surface;
+  --preview-accent: @accent;
+}
