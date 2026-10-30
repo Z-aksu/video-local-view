@@ -1,4 +1,8 @@
 <script setup>
+import { useI18n } from '../i18n.js'
+
+const { t } = useI18n()
+
 defineProps({
   node: { type: Object, required: true },
   selectedPath: { type: String, default: '' },
@@ -10,7 +14,7 @@ defineEmits(['select'])
 <template>
   <details v-if="node.type === 'directory'" class="tree-folder" open>
     <summary class="folder-row">
-      <svg class="folder-icon" viewBox="0 0 20 20" role="img" aria-label="Folder">
+      <svg class="folder-icon" viewBox="0 0 20 20" role="img" :aria-label="t('Folder')">
         <path d="M2.5 5.2c0-.7.6-1.2 1.3-1.2h4l1.7 1.8h6.7c.7 0 1.3.6 1.3 1.3v7.6c0 .7-.6 1.3-1.3 1.3H3.8c-.7 0-1.3-.6-1.3-1.3V5.2Z" />
         <path class="folder-line" d="M2.8 8h14.4" />
       </svg>
@@ -39,7 +43,7 @@ defineEmits(['select'])
     :aria-current="selectedPath === node.path ? 'true' : undefined"
     @click="$emit('select', node)"
   >
-    <svg class="video-icon" viewBox="0 0 20 20" role="img" aria-label="Video file">
+    <svg class="video-icon" viewBox="0 0 20 20" role="img" :aria-label="t('Video file')">
       <rect x="3" y="4" width="14" height="12" rx="2" />
       <path d="m8 7 5 3-5 3V7Z" />
     </svg>

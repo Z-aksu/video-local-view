@@ -1,6 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
+import { DEFAULT_LANGUAGE, isSupportedLanguage, LANGUAGE_HELP } from '../shared/localization.js'
+
 export function initializeWorkspaceConfig(rootDir) {
   const configDir = path.join(path.resolve(rootDir), '.video')
   const configPath = path.join(configDir, 'config.json')
@@ -22,8 +24,13 @@ export function initializeWorkspaceConfig(rootDir) {
     }
     const missingBlur = !Object.hasOwn(config, 'blurLockScreen')
     const missingPassword = !Object.hasOwn(config, 'lockPassword')
+    const missingLanguage = !Object.hasOwn(config, 'language')
     if (missingBlur) config.blurLockScreen = false
     if (missingPassword) config.lockPassword = ''
+    if (missingLanguage) config.language = DEFAULT_LANGUAGE
+    if (!isSupportedLanguage(config.language)) {
+      throw new Error(`Unsupported language ${JSON.stringify(config.language)}. Supported languages: ${LANGUAGE_HELP}. Set "language" to "en" or "zh".`)
+    }
     if (typeof config.blurLockScreen !== 'boolean') {
       throw new Error('blurLockScreen must be true or false.')
     }
@@ -32,7 +39,7 @@ export function initializeWorkspaceConfig(rootDir) {
       throw new Error('lockPassword must be a string or a non-negative integer. Use "" for no password.')
     }
 
-    if (!exists || missingBlur || missingPassword) {
+    if (!exists || missingBlur || missingPassword || missingLanguage) {
       try {
         writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, {
           flag: exists ? 'w' : 'wx', mode: 0o600,

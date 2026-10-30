@@ -8,6 +8,10 @@ import LockScreen from './components/LockScreen.vue'
 import { createBlurLock } from './blur-lock.js'
 import { normalizePlaybackTime } from './playback-progress.js'
 import { applyTheme, readTheme, saveTheme } from './theme.js'
+import { useI18n } from './i18n.js'
+import { isSupportedLanguage } from '../shared/localization.js'
+
+const { language, t, setLanguage } = useI18n()
 
 const activeTheme = ref(readTheme())
 watch(activeTheme, (theme) => {
@@ -30,8 +34,10 @@ const screenBlocked = computed(() => !configReady.value || screenLocked.value)
 const DEFAULT_DOCUMENT_TITLE = 'Video Local View'
 let blurLock = null
 
-watch(screenBlocked, (blocked) => {
-  document.title = blocked ? '—' : DEFAULT_DOCUMENT_TITLE
+watch([screenBlocked, language], ([blocked, currentLanguage]) => {
+  document.title = blocked ? '—' : t(DEFAULT_DOCUMENT_TITLE)
+  document.documentElement.lang = currentLanguage
+  document.querySelector('meta[name="description"]')?.setAttribute('content', t('Browse and play videos from a local folder.'))
 }, { immediate: true, flush: 'sync' })
 
 watch(screenBlocked, (blocked) => {
@@ -64,9 +70,9 @@ async function captureSnapshot() {
   snapshotMessage.value = ''
   try {
     const result = await playerRef.value?.captureFrame()
-    snapshotMessage.value = result === 'copied' ? 'Screenshot copied' : 'Screenshot downloaded; clipboard unavailable'
+    snapshotMessage.value = result === 'copied' ? t('Screenshot copied') : t('Screenshot downloaded; clipboard unavailable')
   } catch (error) {
-    snapshotMessage.value = error.message || 'Screenshot failed'
+    snapshotMessage.value = error.message || t('Screenshot failed')
   }
   window.clearTimeout(snapshotMessageTimer)
   snapshotMessageTimer = window.setTimeout(() => { snapshotMessage.value = '' }, 2600)
@@ -192,7 +198,7 @@ async function loadTree({ isRefresh = false } = {}) {
 
   try {
     const response = await fetch('/api/tree', { cache: 'no-store' })
-    if (!response.ok) throw new Error(`Unable to read the video library (${response.status})`)
+    if (!response.ok) throw new Error(t('Unable to read the video library ({status})', { status: response.status }))
     const result = await response.json()
     tree.value = result.tree
     videoCount.value = result.count
@@ -220,7 +226,8 @@ async function loadTree({ isRefresh = false } = {}) {
     }
     videoSessionId = result.sessionId
   } catch (error) {
-    errorMessage.value = error.message || 'Unable to connect to the local video server.'
+    errorMessage.value = error instanceof TypeError ? t('Unable to connect to the local video server.')
+      : error.message || t('Unable to connect to the local video server.')
   } finally {
     loading.value = false
     refreshing.value = false
@@ -243,19 +250,21 @@ async function loadLockConfig() {
   configError.value = ''
   try {
     const response = await fetch('/api/config', { cache: 'no-store' })
-    if (!response.ok) throw new Error('Unable to load local configuration. Try again.')
+    if (!response.ok) throw new Error(t('Unable to load local configuration. Try again.'))
     const config = await response.json()
     if (typeof config.blurLockScreen !== 'boolean' || typeof config.hasLockPassword !== 'boolean'
-      || typeof config.workspaceId !== 'string' || !config.workspaceId) {
-      throw new Error('Invalid local configuration. Restart the server and try again.')
+      || typeof config.workspaceId !== 'string' || !config.workspaceId || !isSupportedLanguage(config.language)) {
+      throw new Error(t('Invalid local configuration. Restart the server and try again.'))
     }
     if (!blurLock) return
+    setLanguage(config.language)
     passwordRequired.value = config.hasLockPassword
     blurLock.configure({ enabled: config.blurLockScreen, workspaceId: config.workspaceId })
     configReady.value = true
     await loadTree()
   } catch (error) {
-    configError.value = error.message || 'Unable to load local configuration. Try again.'
+    configError.value = error instanceof TypeError ? t('Unable to load local configuration. Try again.')
+      : error.message || t('Unable to load local configuration. Try again.')
   } finally {
     configLoading.value = false
   }
@@ -275,12 +284,13 @@ async function unlockScreen(password) {
         cache: 'no-store',
       })
       const result = await response.json()
-      if (!response.ok) throw new Error(result.error || 'Unable to continue. Try again.')
+      if (!response.ok) throw new Error(result.error || t('Unable to continue. Try again.'))
       return result.unlocked === true
     })
-    if (!unlocked) unlockError.value = 'Click the time to try again.'
+    if (!unlocked) unlockError.value = t('Click the time to try again.')
   } catch (error) {
-    unlockError.value = error.message || 'Unable to connect. Try again.'
+    unlockError.value = error instanceof TypeError ? t('Unable to connect. Try again.')
+      : error.message || t('Unable to connect. Try again.')
   } finally {
     unlockPending.value = false
   }
@@ -303,7 +313,7 @@ onBeforeUnmount(() => {
   blurLock?.dispose()
   blurLock = null
   document.documentElement.classList.remove('screen-blocked')
-  document.title = DEFAULT_DOCUMENT_TITLE
+  document.title = t(DEFAULT_DOCUMENT_TITLE)
   window.clearTimeout(snapshotMessageTimer)
   mobileViewportQuery.removeEventListener('change', updateMobileViewport)
   document.removeEventListener('pointerdown', closeMobileMenuOnOutsidePointer)
@@ -313,7 +323,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="app-frame" :inert="screenBlocked || undefined" :aria-hidden="screenBlocked || undefined" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'mobile-menu-open': mobileMenuOpen, 'desktop-menu-open': desktopMenuOpen }">
-    <aside ref="sidebarElement" class="sidebar" aria-label="Video library sidebar">
+    <aside ref="sidebarElement" class="sidebar" :aria-label="t('Video library sidebar')">
       <header class="brand-row">
         <div class="brand-symbol" aria-hidden="true">
           <svg viewBox="0 0 30 30">
@@ -322,16 +332,16 @@ onBeforeUnmount(() => {
           </svg>
         </div>
         <div class="brand-copy">
-          <span class="brand-name">FRAME / LOCAL</span>
-          <span class="brand-subtitle">VIDEO LIBRARY</span>
+          <span class="brand-name">{{ t('FRAME / LOCAL') }}</span>
+          <span class="brand-subtitle">{{ t('VIDEO LIBRARY') }}</span>
         </div>
-        <span class="live-indicator" title="Local server running"></span>
+        <span class="live-indicator" :title="t('Local server running')"></span>
         <button
           v-if="isMobileViewport || sidebarCollapsed"
           class="sidebar-toggle"
           type="button"
-          :aria-label="isMobileViewport ? mobileMenuOpen ? 'Close video menu' : 'Open video menu' : desktopMenuOpen ? 'Close video library' : 'Open video library'"
-          :title="isMobileViewport ? mobileMenuOpen ? 'Close video menu' : 'Open video menu' : desktopMenuOpen ? 'Close video library' : 'Open video library'"
+          :aria-label="t(isMobileViewport ? mobileMenuOpen ? 'Close video menu' : 'Open video menu' : desktopMenuOpen ? 'Close video library' : 'Open video library')"
+          :title="t(isMobileViewport ? mobileMenuOpen ? 'Close video menu' : 'Open video menu' : desktopMenuOpen ? 'Close video library' : 'Open video library')"
           :aria-expanded="isMobileViewport ? mobileMenuOpen : desktopMenuOpen"
           aria-controls="video-library-menu"
           @click="handleSidebarToggle"
@@ -347,17 +357,17 @@ onBeforeUnmount(() => {
         </button>
       </header>
 
-      <div id="video-library-menu" class="sidebar-menu" role="region" aria-label="Video menu" :inert="isMobileViewport ? !mobileMenuOpen : sidebarCollapsed && !desktopMenuOpen">
+      <div id="video-library-menu" class="sidebar-menu" role="region" :aria-label="t('Video menu')" :inert="isMobileViewport ? !mobileMenuOpen : sidebarCollapsed && !desktopMenuOpen">
         <div class="list-heading">
-          <span class="count-badge" :aria-label="`${videoCount} videos`" :title="`${videoCount} videos`">
+          <span class="count-badge" :aria-label="t(videoCount === 1 ? '{count} video' : '{count} videos', { count: videoCount })" :title="t(videoCount === 1 ? '{count} video' : '{count} videos', { count: videoCount })">
             {{ videoCount }}
           </span>
           <button
             class="refresh-button"
             type="button"
             :disabled="loading || refreshing"
-            aria-label="Rescan videos"
-            title="Rescan"
+            :aria-label="t('Rescan videos')"
+            :title="t('Rescan')"
             @click="loadTree({ isRefresh: true })"
           >
             <svg :class="{ 'is-spinning': refreshing }" viewBox="0 0 20 20" aria-hidden="true">
@@ -369,17 +379,17 @@ onBeforeUnmount(() => {
         <div class="tree-scroll">
           <div v-if="loading" class="sidebar-state">
             <span class="state-spinner"></span>
-            Loading video library…
+            {{ t('Loading video library…') }}
           </div>
           <div v-else-if="errorMessage" class="sidebar-state state-error" role="alert">
             {{ errorMessage }}
           </div>
           <div v-else-if="tree.length === 0" class="sidebar-state empty-tree">
             <span class="empty-folder" aria-hidden="true">—</span>
-            <strong>No videos found</strong>
-            <span>Supports MP4, MOV, MKV, WebM, and other common formats</span>
+            <strong>{{ t('No videos found') }}</strong>
+            <span>{{ t('Supports MP4, MOV, MKV, WebM, and other common formats') }}</span>
           </div>
-          <nav v-else class="tree-list" aria-label="Video files">
+          <nav v-else class="tree-list" :aria-label="t('Video files')">
             <VideoTreeNode
               v-for="node in tree"
               :key="node.path"
@@ -394,8 +404,8 @@ onBeforeUnmount(() => {
       <button
         class="sidebar-bottom-toggle"
         type="button"
-        :aria-label="sidebarCollapsed ? 'Expand video library' : 'Collapse video library'"
-        :title="sidebarCollapsed ? 'Expand video library' : 'Collapse video library'"
+        :aria-label="t(sidebarCollapsed ? 'Expand video library' : 'Collapse video library')"
+        :title="t(sidebarCollapsed ? 'Expand video library' : 'Collapse video library')"
         :aria-expanded="!sidebarCollapsed"
         aria-controls="video-library-menu"
         @click="toggleSidebar"
@@ -411,17 +421,17 @@ onBeforeUnmount(() => {
     <main class="main-panel">
       <header class="topbar">
         <div class="breadcrumb">
-          <span>LIBRARY</span>
+          <span>{{ t('LIBRARY') }}</span>
           <span class="breadcrumb-divider">/</span>
-          <span class="breadcrumb-current">{{ selectedVideo ? 'NOW PLAYING' : 'READY' }}</span>
+          <span class="breadcrumb-current">{{ t(selectedVideo ? 'NOW PLAYING' : 'READY') }}</span>
         </div>
         <div class="topbar-actions">
           <button
             v-if="selectedVideo"
             class="snapshot-toggle"
             type="button"
-            aria-label="Capture the current frame and copy it to the clipboard"
-            title="Screenshot and copy to clipboard"
+            :aria-label="t('Capture the current frame and copy it to the clipboard')"
+            :title="t('Screenshot and copy to clipboard')"
             @click="captureSnapshot"
           >
             <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -430,7 +440,7 @@ onBeforeUnmount(() => {
             </svg>
           </button>
           <span v-if="snapshotMessage" class="snapshot-message" role="status">{{ snapshotMessage }}</span>
-          <div class="topbar-note"><span></span> LOCAL SESSION</div>
+          <div class="topbar-note"><span></span> {{ t('LOCAL SESSION') }}</div>
           <ThemeSwitcher v-model="activeTheme" />
         </div>
       </header>
@@ -456,16 +466,16 @@ onBeforeUnmount(() => {
               <path d="m27 23 16 9-16 9V23Z" />
             </svg>
           </div>
-          <span class="eyebrow">YOUR PERSONAL VIEWING ROOM</span>
-          <h2>Ready when you are.</h2>
-          <p>Select a video from the library.<br />It will appear here when you are ready to play.</p>
+          <span class="eyebrow">{{ t('YOUR PERSONAL VIEWING ROOM') }}</span>
+          <h2>{{ t('Ready when you are.') }}</h2>
+          <p>{{ t('Select a video from the library.') }}<br />{{ t('It will appear here when you are ready to play.') }}</p>
           <div class="welcome-meta">
-            <span><b>01</b> Select a video</span>
+            <span><b>01</b> {{ t('Select a video') }}</span>
             <span class="meta-line"></span>
-            <span><b>02</b> Press play</span>
+            <span><b>02</b> {{ t('Press play') }}</span>
           </div>
         </div>
-        <div class="welcome-index">LOCAL / 001</div>
+        <div class="welcome-index">{{ t('LOCAL / 001') }}</div>
       </section>
     </main>
   </div>

@@ -78,7 +78,7 @@ test('every theme supplies all consumed CSS tokens', async () => {
   assert.doesNotMatch(source + switcherSource + lockStyle, /#[\da-f]{3,8}\b|rgba?\(/i, 'Keep palette colors in theme files')
 })
 
-test('all visible interface prompts are English and the theme menu renders above the player', async () => {
+test('interface copy uses translation keys and the theme menu renders above the player', async () => {
   const component = await readFile(new URL('../src/components/ThemeSwitcher.vue', import.meta.url), 'utf8')
   const style = await readFile(new URL('../src/styles/components/theme-switcher.less', import.meta.url), 'utf8')
   const app = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8')
@@ -94,12 +94,12 @@ test('all visible interface prompts are English and the theme menu renders above
 
   for (const theme of themes) assert.match(theme.label, /^[A-Za-z ]+$/)
   for (const source of [component, app, player, lockScreen, tree, html, cli, serverApp, serverFiles, serverOptions, serverListener]) {
-    assert.doesNotMatch(source, /\p{Script=Han}/u, 'Keep interface copy and accessibility labels in English')
+    assert.doesNotMatch(source, /\p{Script=Han}/u, 'Keep translations centralized in the shared catalog')
   }
   assert.match(component, /<Teleport to="body">/)
   assert.match(component, /Choose a theme/)
   assert.match(component, /APPEARANCE/)
-  assert.match(component, /aria-label="`Change theme, current:/)
+  assert.match(component, /aria-label="t\('Change theme, current: \{theme\}'/)
   assert.match(component, /:style="\{ top: `\$\{popoverPosition\.top\}px`, right:/)
   assert.match(style, /\.theme-options\s*\{\s*position:\s*fixed;/)
   assert.match(style, /z-index:\s*1000;/)

@@ -3,6 +3,9 @@ import Artplayer from 'artplayer'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { trackPlaybackProgress } from '../playback-progress.js'
+import { useI18n } from '../i18n.js'
+
+const { language, t } = useI18n()
 
 const props = defineProps({
   video: { type: Object, required: true },
@@ -38,29 +41,29 @@ function createScreenshotFilename(date = new Date()) {
 }
 
 async function captureFrame() {
-  if (screenLocked.value) throw new Error('Unlock the screen before taking a screenshot.')
+  if (screenLocked.value) throw new Error(t('Unlock the screen before taking a screenshot.'))
   const video = player?.video
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
-    throw new Error('The video frame is not ready yet. Play the video and try again.')
+    throw new Error(t('The video frame is not ready yet. Play the video and try again.'))
   }
 
   const canvas = document.createElement('canvas')
   canvas.width = video.videoWidth
   canvas.height = video.videoHeight
   const context = canvas.getContext('2d')
-  if (!context) throw new Error('Unable to create the screenshot canvas.')
+  if (!context) throw new Error(t('Unable to create the screenshot canvas.'))
   context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
   const imageBlob = new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
       if (blob) resolve(blob)
-      else reject(new Error('Unable to create the screenshot.'))
+      else reject(new Error(t('Unable to create the screenshot.')))
     }, 'image/png')
   })
 
   try {
     if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
-      throw new Error('Image clipboard is not supported by this browser.')
+      throw new Error(t('Image clipboard is not supported by this browser.'))
     }
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': imageBlob })])
     return 'copied'
@@ -100,7 +103,7 @@ function updateScreenLock() {
     })
     if (shouldResumePlayback) {
       player.play().catch(() => {
-        errorMessage.value = 'Playback could not resume automatically. Press play to continue.'
+        errorMessage.value = t('Playback could not resume automatically. Press play to continue.')
       })
     }
   }
@@ -119,7 +122,7 @@ function createPlayer() {
     autoPlayback: false,
     volume: 0.8,
     theme: 'var(--player-accent)',
-    lang: 'en',
+    lang: language.value === 'zh' ? 'zh-cn' : 'en',
     i18n: {
       en: {
         'Video Info': 'Video Info',
@@ -164,7 +167,7 @@ function createPlayer() {
   })
 
   player.on('video:error', () => {
-    errorMessage.value = 'Unable to play this file. Check that it is intact or try a browser-compatible MP4 or WebM video.'
+    errorMessage.value = t('Unable to play this file. Check that it is intact or try a browser-compatible MP4 or WebM video.')
   })
   // Media keys and delayed play promises must not restart audio while locked.
   player.on('video:play', () => {
@@ -195,14 +198,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="player-shell" aria-label="Video player">
+  <section class="player-shell" :aria-label="t('Video player')">
     <div class="player-stage" :class="{ 'is-locked': screenLocked }">
       <div ref="playerElement" class="art-player-mount"></div>
       <div v-if="errorMessage && !screenLocked" class="player-error" role="status">{{ errorMessage }}</div>
     </div>
-    <div class="player-caption" lang="en">
+    <div class="player-caption">
       <span class="caption-mark" aria-hidden="true"></span>
-      Hover to show controls · Hide after 0.8s
+      {{ t('Hover to show controls · Hide after 0.8s') }}
     </div>
   </section>
 </template>

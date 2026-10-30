@@ -13,6 +13,7 @@
   "files": [
     "bin/",
     "server/",
+    "shared/",
     "dist/",
     "README.md"
   ],

@@ -12,6 +12,7 @@ import open from 'open'
 import { createVideoApp } from '../server/app.js'
 import { listenOnAvailablePort } from '../server/listen.js'
 import { parseCliOptions } from '../server/options.js'
+import { LANGUAGE_HELP } from '../shared/localization.js'
 
 const require = createRequire(import.meta.url)
 const packageInfo = require('../package.json')
@@ -107,6 +108,7 @@ export async function main(args = process.argv.slice(2)) {
   console.log('Video Local View is running')
   console.log(`Folder: ${rootDir}`)
   console.log(`Config: ${path.join(rootDir, '.video', 'config.json')}`)
+  console.log(`Language: ${app.locals.language}. Supported languages: ${LANGUAGE_HELP}.`)
   console.log(`Open: ${url}`)
   if (options.host === '0.0.0.0' || options.host === '::') {
     for (const host of lanHosts()) console.log(`LAN access: http://${host}:${port}`)

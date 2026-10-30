@@ -53,8 +53,9 @@ test('CLI startup initializes the current video directory configuration', async 
   const root = await fixture(t)
   const output = await start(t, root)
   const configPath = path.join(root, '.video', 'config.json')
-  assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), { blurLockScreen: false, lockPassword: '' })
+  assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), { blurLockScreen: false, lockPassword: '', language: 'en' })
   assert.ok(output.includes(`Config: ${configPath}`))
+  assert.match(output, /Language: en\. Supported languages: en \(English\), zh \(中文\)/)
 })
 
 test('CLI --dir initializes only the selected video directory and preserves its password', async (t) => {
@@ -62,9 +63,10 @@ test('CLI --dir initializes only the selected video directory and preserves its 
   const videos = path.join(root, 'videos')
   await mkdir(path.join(videos, '.video'), { recursive: true })
   const configPath = path.join(videos, '.video', 'config.json')
-  const original = '{ "blurLockScreen": true, "lockPassword": "0012", "keep": 42 }\n'
+  const original = '{ "blurLockScreen": true, "lockPassword": "0012", "language": "zh", "keep": 42 }\n'
   await writeFile(configPath, original)
-  await start(t, root, ['--dir', videos])
+  const output = await start(t, root, ['--dir', videos])
+  assert.match(output, /Language: zh/)
   assert.equal(await readFile(configPath, 'utf8'), original)
   await assert.rejects(readFile(path.join(root, '.video', 'config.json')), { code: 'ENOENT' })
 })
@@ -76,4 +78,20 @@ test('CLI fails clearly on malformed configuration without overwriting it', asyn
   await writeFile(configPath, '{broken')
   await assert.rejects(start(t, root), /Startup failed: Unable to initialize configuration/)
   assert.equal(await readFile(configPath, 'utf8'), '{broken')
+})
+
+test('CLI refuses unsupported language before opening a port and lists allowed values', async (t) => {
+  const root = await fixture(t)
+  await mkdir(path.join(root, '.video'))
+  const configPath = path.join(root, '.video', 'config.json')
+  const contents = '{"language":"fr","lockPassword":"0042"}'
+  await writeFile(configPath, contents)
+  await assert.rejects(start(t, root), (error) => {
+    assert.match(error.message, /CLI exited \(1\)/)
+    assert.match(error.message, /Unsupported language "fr"/)
+    assert.match(error.message, /en \(English\), zh \(中文\)/)
+    assert.doesNotMatch(error.message, /Video Local View is running/)
+    return true
+  })
+  assert.equal(await readFile(configPath, 'utf8'), contents)
 })

@@ -78,7 +78,8 @@ test('GET /api/config exposes lock settings without the password or root path', 
   const config = await response.json()
   assert.equal(response.status, 200)
   assert.equal(response.headers.get('cache-control'), 'no-store')
-  assert.deepEqual(Object.keys(config).sort(), ['blurLockScreen', 'hasLockPassword', 'workspaceId'])
+  assert.deepEqual(Object.keys(config).sort(), ['blurLockScreen', 'hasLockPassword', 'language', 'workspaceId'])
+  assert.equal(config.language, 'en')
   assert.equal(config.blurLockScreen, true)
   assert.equal(config.hasLockPassword, true)
   assert.match(config.workspaceId, /^[a-f0-9]{64}$/)
@@ -123,5 +124,38 @@ test('numeric zero passwords work and oversized or malformed bodies are rejected
     })
     assert.equal(response.status, status)
     await response.json()
+  }
+})
+
+test('configured language controls public configuration and API error messages', async (t) => {
+  for (const language of ['en', 'zh']) {
+    const { baseUrl } = await startFixtureServer(t, { language, blurLockScreen: true, lockPassword: '0042' })
+    const configResponse = await fetch(`${baseUrl}/api/config`)
+    assert.equal((await configResponse.json()).language, language)
+    assert.equal(configResponse.headers.get('content-language'), language)
+    for (const [route, status, english, chinese] of [
+      ['/api/missing', 404, 'API route not found.', '接口不存在。'],
+      ['/missing', 404, 'Page not found.', '页面不存在。'],
+      ['/api/video', 400, 'Missing video file path.', '缺少视频文件路径。'],
+      ['/api/video?path=missing.mp4', 404, 'Video file not found.', '视频文件不存在。'],
+      ['/api/video?path=notes.txt', 400, 'Unsupported video file type.', '不支持的视频文件类型。'],
+      ['/api/video?path=../outside.mp4', 403, 'Access to files outside the video folder is not allowed.', '禁止访问视频目录以外的文件。'],
+    ]) {
+      const response = await fetch(`${baseUrl}${route}`)
+      assert.equal(response.status, status)
+      assert.deepEqual(await response.json(), { error: language === 'zh' ? chinese : english })
+    }
+    for (const [body, status, english, chinese] of [
+      ['{"password":""}', 400, 'Enter your password.', '请输入密码。'],
+      ['{"password":"wrong"}', 401, 'Incorrect password. Try again.', '密码错误，请重试。'],
+      ['{broken', 400, 'Invalid JSON request body.', '请求内容不是有效的 JSON。'],
+      [JSON.stringify({ password: 'a'.repeat(1100) }), 413, 'Request body is too large.', '请求内容过大。'],
+    ]) {
+      const response = await fetch(`${baseUrl}/api/unlock`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+      })
+      assert.equal(response.status, status)
+      assert.deepEqual(await response.json(), { error: language === 'zh' ? chinese : english })
+    }
   }
 })
