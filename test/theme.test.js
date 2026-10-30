@@ -58,14 +58,13 @@ test('applying a theme updates the document and browser chrome color', () => {
   assert.doesNotThrow(() => applyTheme('forest', { documentElement: { dataset: {} } }))
 })
 
-test('every theme supplies valid local SVG banners and all consumed CSS tokens', async () => {
+test('every theme supplies all consumed CSS tokens', async () => {
   const stylesUrl = new URL('../src/styles/index.less', import.meta.url)
   const source = await readFile(stylesUrl, 'utf8')
   const switcherSource = await readFile(new URL('../src/styles/components/theme-switcher.less', import.meta.url), 'utf8')
   const playerSource = await readFile(new URL('../src/components/VideoPlayer.vue', import.meta.url), 'utf8')
   const lockStyle = await readFile(new URL('../src/styles/components/lock-screen.less', import.meta.url), 'utf8')
   const usedTokens = new Set([...`${source}\n${switcherSource}\n${playerSource}\n${lockStyle}`.matchAll(/var\((--[a-z-]+)\)/g)].map((match) => match[1]))
-  usedTokens.delete('--slide-count') // The carousel provides its dynamic count inline.
   for (const token of ['--preview-paper', '--preview-surface', '--preview-accent']) usedTokens.delete(token)
 
   assert.equal(new Set(themes.map((theme) => theme.id)).size, themes.length)
@@ -75,15 +74,6 @@ test('every theme supplies valid local SVG banners and all consumed CSS tokens',
     const compiled = await less.render(themeSource, { filename: themeUrl.pathname.replace(/^\/(\w:)/, '$1') })
     const definedTokens = new Set([...compiled.css.matchAll(/(--[a-z-]+)\s*:/g)].map((match) => match[1]))
     for (const token of usedTokens) assert.ok(definedTokens.has(token), `${theme.id} is missing ${token}`)
-    assert.ok(theme.banners.length > 0, `${theme.id} needs at least one banner`)
-    for (const banner of theme.banners) {
-      const svg = await readFile(new URL(banner.src), 'utf8')
-      assert.match(svg, /<svg[^>]+xmlns="http:\/\/www.w3.org\/2000\/svg"/)
-      assert.match(svg, /viewBox="0 0 \d+ \d+"/)
-      assert.ok(banner.title)
-      assert.doesNotMatch(svg, /\p{Script=Han}/u, 'Keep artwork labels in English')
-      assert.doesNotMatch(svg, /<script|<image|https?:\/\/(?!www\.w3\.org)/i)
-    }
   }
   assert.doesNotMatch(source + switcherSource + lockStyle, /#[\da-f]{3,8}\b|rgba?\(/i, 'Keep palette colors in theme files')
 })
@@ -93,7 +83,6 @@ test('all visible interface prompts are English and the theme menu renders above
   const style = await readFile(new URL('../src/styles/components/theme-switcher.less', import.meta.url), 'utf8')
   const app = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8')
   const player = await readFile(new URL('../src/components/VideoPlayer.vue', import.meta.url), 'utf8')
-  const carousel = await readFile(new URL('../src/components/PrivacyScreen.vue', import.meta.url), 'utf8')
   const lockScreen = await readFile(new URL('../src/components/LockScreen.vue', import.meta.url), 'utf8')
   const tree = await readFile(new URL('../src/components/VideoTreeNode.vue', import.meta.url), 'utf8')
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8')
@@ -104,7 +93,7 @@ test('all visible interface prompts are English and the theme menu renders above
   const serverListener = await readFile(new URL('../server/listen.js', import.meta.url), 'utf8')
 
   for (const theme of themes) assert.match(theme.label, /^[A-Za-z ]+$/)
-  for (const source of [component, app, player, carousel, lockScreen, tree, html, cli, serverApp, serverFiles, serverOptions, serverListener]) {
+  for (const source of [component, app, player, lockScreen, tree, html, cli, serverApp, serverFiles, serverOptions, serverListener]) {
     assert.doesNotMatch(source, /\p{Script=Han}/u, 'Keep interface copy and accessibility labels in English')
   }
   assert.match(component, /<Teleport to="body">/)

@@ -17,11 +17,11 @@ async function fixture(t, contents) {
   return { root, configPath }
 }
 
-test('initializes .video/config.json with enabled blur locking and an empty password', async (t) => {
+test('initializes .video/config.json with disabled blur locking and an empty password', async (t) => {
   const { root, configPath } = await fixture(t)
   const config = initializeWorkspaceConfig(root)
 
-  assert.equal(config.blurLockScreen, true)
+  assert.equal(config.blurLockScreen, false)
   assert.equal(config.lockPassword, '')
   assert.equal(hasLockPassword(config), false)
   assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), config)
@@ -29,32 +29,36 @@ test('initializes .video/config.json with enabled blur locking and an empty pass
 })
 
 test('preserves complete configuration byte for byte including custom passwords and extra fields', async (t) => {
-  const contents = '{ "blurLockScreen": false, "lockPassword": "0042", "custom": { "keep": true } }\n'
-  const { root, configPath } = await fixture(t, contents)
+  for (const enabled of [false, true]) {
+    const contents = `{ "blurLockScreen": ${enabled}, "lockPassword": "0042", "custom": { "keep": true } }\n`
+    const { root, configPath } = await fixture(t, contents)
 
-  assert.deepEqual(initializeWorkspaceConfig(root), JSON.parse(contents))
-  assert.deepEqual(initializeWorkspaceConfig(root), JSON.parse(contents))
-  assert.equal(await readFile(configPath, 'utf8'), contents)
+    assert.deepEqual(initializeWorkspaceConfig(root), JSON.parse(contents))
+    assert.deepEqual(initializeWorkspaceConfig(root), JSON.parse(contents))
+    assert.equal(await readFile(configPath, 'utf8'), contents)
+  }
 })
 
 test('only fills missing fields and preserves manually chosen numeric passwords', async (t) => {
   const { root, configPath } = await fixture(t, '{"lockPassword":9876,"custom":"keep"}')
   const config = initializeWorkspaceConfig(root)
 
-  assert.equal(config.blurLockScreen, true)
+  assert.equal(config.blurLockScreen, false)
   assert.equal(config.lockPassword, 9876)
   assert.equal(hasLockPassword(config), true)
   assert.equal(config.custom, 'keep')
   assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), config)
 })
 
-test('defaults a missing password to empty without enabling an explicitly disabled lock', async (t) => {
-  const { root } = await fixture(t, '{"blurLockScreen":false}')
-  const config = initializeWorkspaceConfig(root)
+test('defaults a missing password to empty and preserves the explicit lock setting', async (t) => {
+  for (const enabled of [false, true]) {
+    const { root } = await fixture(t, JSON.stringify({ blurLockScreen: enabled }))
+    const config = initializeWorkspaceConfig(root)
 
-  assert.equal(config.blurLockScreen, false)
-  assert.equal(config.lockPassword, '')
-  assert.equal(initializeWorkspaceConfig(root).lockPassword, config.lockPassword)
+    assert.equal(config.blurLockScreen, enabled)
+    assert.equal(config.lockPassword, '')
+    assert.deepEqual(initializeWorkspaceConfig(root), config)
+  }
 })
 
 test('rejects invalid configurations without replacing their contents', async (t) => {

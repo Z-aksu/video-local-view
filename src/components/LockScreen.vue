@@ -1,10 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { getTheme } from '../theme.js'
-
 const props = defineProps({
-  theme: { type: String, default: 'forest' },
   ready: Boolean,
   loading: Boolean,
   configError: { type: String, default: '' },
@@ -21,7 +18,6 @@ const entryOpen = ref(false)
 const now = ref(new Date())
 let clockTimer
 
-const artwork = computed(() => getTheme(props.theme).banners[0])
 const timeLabel = computed(() => now.value.toLocaleTimeString('en-GB', {
   hour: '2-digit', minute: '2-digit', hour12: false,
 }))
@@ -98,7 +94,6 @@ watch(() => props.passwordRequired, () => {
 
       <main class="desk-main">
         <div class="desk-paper">
-          <div class="desk-artwork" aria-hidden="true"><img :src="artwork.src" alt="" draggable="false"></div>
           <section class="desk-clock-card" aria-label="Current time">
             <span class="desk-eyebrow">{{ monthLabel }}</span>
             <button ref="clockElement" class="desk-clock" type="button" aria-label="Current time" :aria-expanded="passwordRequired ? entryOpen : undefined" :disabled="!ready || busy" @click="handleClockClick">

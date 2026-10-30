@@ -173,10 +173,6 @@ button { font: inherit; }
 .snapshot-toggle:disabled { color: var(--text-faint); cursor: not-allowed; }
 .snapshot-toggle svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .snapshot-message { color: var(--accent-muted); font-size: 10px; white-space: nowrap; }
-.privacy-toggle { display: grid; flex: 0 0 auto; width: 32px; height: 32px; place-items: center; padding: 0; color: var(--accent-muted); border: 1px solid var(--line); border-radius: 7px; background: var(--hover-bg); cursor: pointer; transition: color .16s ease, background .16s ease, border-color .16s ease; }
-.privacy-toggle:hover, .privacy-toggle.is-active { color: var(--accent-strong); border-color: var(--line-strong); background: var(--hover-bg); }
-.privacy-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.privacy-toggle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
 .topbar-note { display: flex; align-items: center; gap: 7px; color: var(--muted); font: 9px var(--mono); letter-spacing: .08em; }
 .topbar-note span { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
 
@@ -203,26 +199,8 @@ button { font: inherit; }
 .art-player-mount { width: 100%; height: 100%; }
 .art-player-mount .art-video-player { --art-border-radius: 9px; }
 .art-player-mount .art-video-player .art-bottom { background-image: var(--player-controls); }
-.player-stage.is-covered { background: var(--cover-bg); }
-.player-stage.is-covered .art-video { visibility: hidden; }
-.art-video-player.is-covered > :not(.privacy-screen) { visibility: hidden; pointer-events: none; }
-.privacy-screen { position: absolute; z-index: 120; inset: 0; overflow: hidden; background: var(--cover-bg); cursor: grab; touch-action: pan-y; }
-.privacy-screen:active { cursor: grabbing; }
-.privacy-screen:focus { outline: none; }
-.privacy-carousel { display: flex; width: calc(100% * var(--slide-count)); height: 100%; transition: transform .42s cubic-bezier(.22, .7, .2, 1); will-change: transform; }
-.privacy-landscape { display: block; flex: 0 0 calc(100% / var(--slide-count)); width: calc(100% / var(--slide-count)); height: 100%; object-fit: contain; }
-.privacy-slide-arrow { position: absolute; top: 50%; display: grid; width: 34px; height: 34px; place-items: center; padding: 0; color: var(--cover-control); border: 1px solid var(--cover-control-border); border-radius: 50%; background: var(--cover-control-bg); cursor: pointer; opacity: .42; transform: translateY(-50%); transition: opacity .18s ease, color .18s ease, background .18s ease; }
-.privacy-screen:hover .privacy-slide-arrow, .privacy-slide-arrow:focus-visible { opacity: 1; }
-.privacy-slide-arrow:hover { color: var(--accent-strong); background: var(--cover-control-hover); }
-.privacy-slide-arrow:focus-visible, .privacy-slide-dots button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.privacy-slide-arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
-.privacy-slide-previous { left: 16px; }
-.privacy-slide-next { right: 16px; }
-.privacy-slide-dots { position: absolute; right: 0; bottom: 14px; left: 0; display: flex; justify-content: center; gap: 8px; }
-.privacy-slide-dots button { width: 7px; height: 7px; flex: 0 0 7px; padding: 0; border: 0; border-radius: 50%; background: var(--cover-dot); cursor: pointer; transition: width .2s ease, border-radius .2s ease, background .2s ease; }
-.privacy-slide-dots button.is-active { width: 20px; flex-basis: 20px; border-radius: 5px; background: var(--accent-muted); }
-.privacy-fullscreen-toggle { display: none; position: absolute; z-index: 115; top: 16px; right: 16px; }
-.art-fullscreen > .privacy-fullscreen-toggle, .art-fullscreen-web > .privacy-fullscreen-toggle { display: inline-flex; }
+.player-stage.is-locked .art-video { visibility: hidden; }
+.art-video-player.is-locked > * { visibility: hidden; pointer-events: none; }
 .player-error { position: absolute; z-index: 80; right: 15px; bottom: 58px; left: 15px; width: fit-content; max-width: calc(100% - 30px); margin: auto; padding: 10px 14px; color: var(--error-text); border: 1px solid var(--error-border); border-radius: 7px; background: var(--error-bg); font-size: 11px; line-height: 1.5; }
 .player-caption { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 8px 1px; color: var(--muted); font: 9px var(--mono); letter-spacing: .03em; }
 .caption-mark { width: 12px; height: 1px; background: var(--accent-muted); }
@@ -279,9 +257,6 @@ button { font: inherit; }
   .topbar-note { display: none; }
   .topbar-actions { gap: 10px; }
   .snapshot-message { position: absolute; top: calc(100% + 8px); right: 14px; max-width: calc(100vw - 28px); padding: 8px 12px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); box-shadow: 0 4px 16px var(--shadow-soft); white-space: normal; }
-  .privacy-slide-previous { left: 9px; }
-  .privacy-slide-next { right: 9px; }
-  .privacy-slide-dots { bottom: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

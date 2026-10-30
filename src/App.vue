@@ -18,7 +18,6 @@ watch(activeTheme, (theme) => {
 const tree = ref([])
 const videoCount = ref(0)
 const selectedVideo = ref(null)
-const privacyCovered = ref(false)
 const playerRef = ref(null)
 const configReady = ref(false)
 const configLoading = ref(false)
@@ -61,7 +60,7 @@ let playbackTime = 0
 let snapshotMessageTimer
 
 async function captureSnapshot() {
-  if (privacyCovered.value || screenBlocked.value) return
+  if (screenBlocked.value) return
   snapshotMessage.value = ''
   try {
     const result = await playerRef.value?.captureFrame()
@@ -170,15 +169,14 @@ function saveVideoSessionState() {
     window.sessionStorage.setItem(SELECTED_VIDEO_STORAGE_KEY, JSON.stringify({
       path: selectedVideo.value.path,
       sessionId: videoSessionId,
-      covered: privacyCovered.value,
       currentTime: playbackTime,
     }))
   } catch {
-    // Video selection and privacy cover still work in memory when storage is unavailable.
+    // Video selection still works in memory when storage is unavailable.
   }
 }
 
-watch([selectedVideo, privacyCovered], saveVideoSessionState)
+watch(selectedVideo, saveVideoSessionState)
 
 function savePlaybackProgress({ path, currentTime }) {
   // A previous player's teardown must not overwrite the newly selected video.
@@ -203,12 +201,10 @@ async function loadTree({ isRefresh = false } = {}) {
     if (serverRestarted) {
       playbackTime = 0
       selectedVideo.value = null
-      privacyCovered.value = false
       clearSavedVideoSelection()
     } else if (selectedVideo.value && !containsPath(tree.value, selectedVideo.value.path)) {
       playbackTime = 0
       selectedVideo.value = null
-      privacyCovered.value = false
       clearSavedVideoSelection()
     } else if (!selectedVideo.value) {
       const savedSelection = readSavedVideoSelection()
@@ -218,9 +214,7 @@ async function loadTree({ isRefresh = false } = {}) {
       if (savedVideo) {
         playbackTime = normalizePlaybackTime(savedSelection.currentTime)
         selectedVideo.value = { name: savedVideo.name, path: savedVideo.path, initialTime: playbackTime }
-        privacyCovered.value = savedSelection.covered === true
       } else {
-        privacyCovered.value = false
         clearSavedVideoSelection()
       }
     }
@@ -239,7 +233,6 @@ function selectVideo(video) {
     playbackTime = 0
     selectedVideo.value = { name: video.name, path: video.path }
   }
-  privacyCovered.value = false
   mobileMenuOpen.value = false
   desktopMenuOpen.value = false
 }
@@ -427,9 +420,8 @@ onBeforeUnmount(() => {
             v-if="selectedVideo"
             class="snapshot-toggle"
             type="button"
-            :disabled="privacyCovered"
-            :aria-label="privacyCovered ? 'Uncover the video before taking a screenshot' : 'Capture the current frame and copy it to the clipboard'"
-            :title="privacyCovered ? 'Uncover the video to take a screenshot' : 'Screenshot and copy to clipboard'"
+            aria-label="Capture the current frame and copy it to the clipboard"
+            title="Screenshot and copy to clipboard"
             @click="captureSnapshot"
           >
             <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -438,22 +430,6 @@ onBeforeUnmount(() => {
             </svg>
           </button>
           <span v-if="snapshotMessage" class="snapshot-message" role="status">{{ snapshotMessage }}</span>
-          <button
-            v-if="selectedVideo"
-            class="privacy-toggle"
-            :class="{ 'is-active': privacyCovered }"
-            type="button"
-            :aria-pressed="privacyCovered"
-            :aria-label="privacyCovered ? 'Show video' : 'Cover video'"
-            :title="privacyCovered ? 'Show video' : 'Cover video'"
-            @click="privacyCovered = !privacyCovered"
-          >
-            <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M2.5 10s2.7-4.5 7.5-4.5 7.5 4.5 7.5 4.5-2.7 4.5-7.5 4.5S2.5 10 2.5 10Z" />
-              <circle cx="10" cy="10" r="1.8" />
-              <path v-if="!privacyCovered" d="m3.2 3.2 13.6 13.6" />
-            </svg>
-          </button>
           <div class="topbar-note"><span></span> LOCAL SESSION</div>
           <ThemeSwitcher v-model="activeTheme" />
         </div>
@@ -463,10 +439,8 @@ onBeforeUnmount(() => {
         <VideoPlayer
           ref="playerRef"
           :key="selectedVideo.path"
-          v-model:covered="privacyCovered"
           :video="selectedVideo"
           :initial-time="selectedVideo.initialTime"
-          :theme="activeTheme"
           :locked="screenBlocked"
           @progress="savePlaybackProgress"
         />
@@ -497,7 +471,6 @@ onBeforeUnmount(() => {
   </div>
   <LockScreen
     v-if="screenBlocked"
-    :theme="activeTheme"
     :ready="configReady"
     :loading="configLoading"
     :config-error="configError"

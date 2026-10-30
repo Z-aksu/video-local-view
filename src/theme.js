@@ -4,20 +4,10 @@ export const THEME_STORAGE_KEY = 'video-local-view.theme'
 // Register a theme here and add its variables in styles/themes/<id>.less.
 export const themes = Object.freeze([
   Object.freeze({
-    id: 'forest', label: 'Forest', description: 'Fresh green landscape', bannerLabel: 'Forest landscape carousel',
-    banners: Object.freeze([
-      { src: new URL('./assets/banners/forest/01.svg', import.meta.url).href, title: 'A Quiet Mountain Lake' },
-      { src: new URL('./assets/banners/forest/02.svg', import.meta.url).href, title: 'Bamboo in the Mist' },
-      { src: new URL('./assets/banners/forest/03.svg', import.meta.url).href, title: 'Moonlit Mountains' },
-    ]),
+    id: 'forest', label: 'Forest', description: 'Fresh green palette',
   }),
   Object.freeze({
-    id: 'ink', label: 'Ink Wash', description: 'Monochrome ink landscape', bannerLabel: 'Ink wash landscape carousel',
-    banners: Object.freeze([
-      { src: new URL('./assets/banners/ink/01.svg', import.meta.url).href, title: 'Mountains in Ink' },
-      { src: new URL('./assets/banners/ink/02.svg', import.meta.url).href, title: 'Whispering Bamboo' },
-      { src: new URL('./assets/banners/ink/03.svg', import.meta.url).href, title: 'Moon Among the Pines' },
-    ]),
+    id: 'ink', label: 'Ink Wash', description: 'Monochrome ink palette',
   }),
 ])
 

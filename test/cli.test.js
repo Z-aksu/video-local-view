@@ -53,7 +53,7 @@ test('CLI startup initializes the current video directory configuration', async 
   const root = await fixture(t)
   const output = await start(t, root)
   const configPath = path.join(root, '.video', 'config.json')
-  assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), { blurLockScreen: true, lockPassword: '' })
+  assert.deepEqual(JSON.parse(await readFile(configPath, 'utf8')), { blurLockScreen: false, lockPassword: '' })
   assert.ok(output.includes(`Config: ${configPath}`))
 })
 

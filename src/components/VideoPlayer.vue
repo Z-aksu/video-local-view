@@ -1,30 +1,25 @@
 <script setup>
 import Artplayer from 'artplayer'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import PrivacyScreen from './PrivacyScreen.vue'
 import { trackPlaybackProgress } from '../playback-progress.js'
 
 const props = defineProps({
   video: { type: Object, required: true },
-  covered: { type: Boolean, default: false },
   locked: { type: Boolean, default: false },
   initialTime: { type: Number, default: 0 },
-  theme: { type: String, default: 'forest' },
 })
 
-const emit = defineEmits(['update:covered', 'progress'])
+const emit = defineEmits(['progress'])
 const playerElement = ref(null)
-const playerRoot = shallowRef(null)
 const errorMessage = ref('')
 const source = computed(() => `/api/video?path=${encodeURIComponent(props.video.path)}`)
 const screenLocked = ref(props.locked)
-const obscured = computed(() => props.covered || screenLocked.value)
 
 let player
 let playbackProgress
-let focusBeforeCover = null
-let wasPlayingBeforeCover = false
+let focusBeforeLock = null
+let wasPlayingBeforeLock = false
 
 function createScreenshotFilename(date = new Date()) {
   const timestamp = [
@@ -43,7 +38,7 @@ function createScreenshotFilename(date = new Date()) {
 }
 
 async function captureFrame() {
-  if (obscured.value) throw new Error('Uncover the video before taking a screenshot.')
+  if (screenLocked.value) throw new Error('Unlock the screen before taking a screenshot.')
   const video = player?.video
   if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
     throw new Error('The video frame is not ready yet. Play the video and try again.')
@@ -88,23 +83,20 @@ function setScreenLocked(locked) {
 defineExpose({ captureFrame, setScreenLocked })
 watch(() => props.locked, setScreenLocked, { flush: 'sync' })
 
-function updatePrivacyScreen() {
+function updateScreenLock() {
   if (!player) return
 
-  playerRoot.value.classList.toggle('is-covered', obscured.value)
+  player.template.$player.classList.toggle('is-locked', screenLocked.value)
 
-  if (obscured.value) {
-    focusBeforeCover = document.activeElement
-    wasPlayingBeforeCover = !player.video.paused && !player.video.ended
-    if (wasPlayingBeforeCover) player.pause()
-    nextTick(() => {
-      if (props.covered && !screenLocked.value) playerRoot.value?.querySelector('.privacy-screen')?.focus({ preventScroll: true })
-    })
+  if (screenLocked.value) {
+    focusBeforeLock = document.activeElement
+    wasPlayingBeforeLock = !player.video.paused && !player.video.ended
+    if (wasPlayingBeforeLock) player.pause()
   } else {
-    const shouldResumePlayback = wasPlayingBeforeCover
-    wasPlayingBeforeCover = false
+    const shouldResumePlayback = wasPlayingBeforeLock
+    wasPlayingBeforeLock = false
     nextTick(() => {
-      if (!obscured.value && focusBeforeCover?.isConnected) focusBeforeCover.focus({ preventScroll: true })
+      if (!screenLocked.value && focusBeforeLock?.isConnected) focusBeforeLock.focus({ preventScroll: true })
     })
     if (shouldResumePlayback) {
       player.play().catch(() => {
@@ -114,7 +106,7 @@ function updatePrivacyScreen() {
   }
 }
 
-watch(obscured, updatePrivacyScreen, { flush: 'sync' })
+watch(screenLocked, updateScreenLock, { flush: 'sync' })
 
 function createPlayer() {
   // Keep controls visible briefly after pointer activity, then let ArtPlayer hide them.
@@ -174,9 +166,9 @@ function createPlayer() {
   player.on('video:error', () => {
     errorMessage.value = 'Unable to play this file. Check that it is intact or try a browser-compatible MP4 or WebM video.'
   })
-  // Media keys and delayed play promises must not restart audio behind the cover.
+  // Media keys and delayed play promises must not restart audio while locked.
   player.on('video:play', () => {
-    if (obscured.value) player.pause()
+    if (screenLocked.value) player.pause()
   })
 
   // Only our tab-scoped session state is persisted, not ArtPlayer settings.
@@ -190,8 +182,7 @@ function createPlayer() {
     initialTime: props.initialTime,
     onProgress: (currentTime) => emit('progress', { path: videoPath, currentTime }),
   })
-  playerRoot.value = player.template.$player
-  if (obscured.value) updatePrivacyScreen()
+  if (screenLocked.value) updateScreenLock()
 }
 
 onMounted(createPlayer)
@@ -205,26 +196,9 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="player-shell" aria-label="Video player">
-    <div class="player-stage" :class="{ 'is-covered': obscured }">
+    <div class="player-stage" :class="{ 'is-locked': screenLocked }">
       <div ref="playerElement" class="art-player-mount"></div>
-      <div v-if="errorMessage && !obscured" class="player-error" role="status">{{ errorMessage }}</div>
-      <Teleport v-if="playerRoot" :to="playerRoot">
-        <button
-          v-show="!obscured"
-          class="privacy-fullscreen-toggle privacy-toggle"
-          type="button"
-          aria-label="Cover video"
-          title="Cover video"
-          @click.stop="emit('update:covered', true)"
-        >
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M2.5 10s2.7-4.5 7.5-4.5 7.5 4.5 7.5 4.5-2.7 4.5-7.5 4.5S2.5 10 2.5 10Z" />
-            <circle cx="10" cy="10" r="1.8" />
-            <path d="m3.2 3.2 13.6 13.6" />
-          </svg>
-        </button>
-        <PrivacyScreen v-show="covered && !screenLocked" :theme="theme" @restore="emit('update:covered', false)" />
-      </Teleport>
+      <div v-if="errorMessage && !screenLocked" class="player-error" role="status">{{ errorMessage }}</div>
     </div>
     <div class="player-caption" lang="en">
       <span class="caption-mark" aria-hidden="true"></span>

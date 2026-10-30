@@ -22,7 +22,7 @@ export function initializeWorkspaceConfig(rootDir) {
     }
     const missingBlur = !Object.hasOwn(config, 'blurLockScreen')
     const missingPassword = !Object.hasOwn(config, 'lockPassword')
-    if (missingBlur) config.blurLockScreen = true
+    if (missingBlur) config.blurLockScreen = false
     if (missingPassword) config.lockPassword = ''
     if (typeof config.blurLockScreen !== 'boolean') {
       throw new Error('blurLockScreen must be true or false.')
